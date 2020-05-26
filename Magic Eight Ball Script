@@ -1,0 +1,32 @@
+import java.util.*;
+
+public class MagicEightBall {
+	
+	private String[] responses;
+	
+	public MagicEightBall()
+	{
+		responses = new String[10];
+		responses[0] = "My reply is heck no";
+		responses[1] = "Don't count on it";
+		responses[2] = "Better not tell you now";
+		responses[3] = "outlook not so good";
+		responses[4] = "Concentrate and ask again";
+		responses[5] = "It is certain";
+		responses[6] = "It is decidedly so";
+		responses[7] = "Without a doubt";
+		responses[8] = "Yes definetly";
+		responses[9] = "You may rely on it";
+				
+				
+	}
+	
+	public String shake()
+	{
+		Random generator = new Random();
+		int num = generator.nextInt(10);
+		return responses[num];
+	}
+	
+	
+}
