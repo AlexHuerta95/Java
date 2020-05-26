@@ -1,0 +1,126 @@
+
+package GroupProject;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+import GroupProject.Sandbox;
+
+import javax.swing.JTabbedPane;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import java.awt.event.ActionListener;
+import java.util.Date;
+import java.awt.event.ActionEvent;
+import java.text.Format;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
+public class StockMinerTabbed extends JFrame {
+	
+	public String db_location;
+	private JPanel contentPane;
+	private JTable table_1;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					StockMinerTabbed frame = new StockMinerTabbed();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public StockMinerTabbed() {
+		setTitle("Stock Price Miner");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 977, 482);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		JPanel panel_1 = new JPanel();
+		panel_1.setBounds(0, 0, 955, 426);
+		contentPane.add(panel_1);
+		panel_1.setLayout(null);
+		
+		JButton OpenDatabaseButton = new JButton("Open Database");
+		
+		OpenDatabaseButton.setBounds(161, 16, 220, 29);
+		panel_1.add(OpenDatabaseButton);
+		
+		JLabel lblStock = new JLabel("Stock:");
+		lblStock.setBounds(444, 20, 49, 20);
+		panel_1.add(lblStock);
+		
+		JComboBox comboBox_1 = new JComboBox();
+		
+		comboBox_1.setBounds(508, 17, 275, 26);
+		panel_1.add(comboBox_1);
+		
+		JScrollPane scrollPane_1 = new JScrollPane();
+		scrollPane_1.setBounds(15, 86, 920, 324);
+		panel_1.add(scrollPane_1);
+		
+		table_1 = new JTable();
+		scrollPane_1.setViewportView(table_1);
+		
+		OpenDatabaseButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				//edited method to show the different stocks in the dropdown menu and not repeat the values over and over again
+				db_location = Sandbox.select_file_and_return_path(contentPane,"db","SQLite Files");
+				String sqlquery = "Select stock from stocks";
+				Sandbox.populate_JComboBox("jdbc:sqlite:" + db_location , "SELECT stock from stocks", comboBox_1, 1);
+				
+			}
+		});
+		
+		
+		comboBox_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//to show the records in the table of the selected stock
+				String selection = comboBox_1.getSelectedItem().toString();
+				Sandbox.populate_JTable("jdbc:sqlite:" + db_location, "Select * from stocks where stock = '" + selection + "'", table_1);
+				
+			
+				
+				//create a multi-line graph for the info the bar graph needs. might want to organize by date
+				//cant get this to work, probabaly because unsure of how to set up double array and sqlquery
+				String sqlquery = "SELECT stock, close, date from stocks WHERE Stock='"+comboBox_1.getSelectedItem().toString()+"'";
+				String[][] returnedResult = Sandbox.easy_sqlite_2d_array("jdbc:sqlite:"+ db_location, sqlquery);
+				double[] values = new double[returnedResult[0].length];
+				//get Y values (stock prices)
+				for(int x=0; x < returnedResult[2].length; x++) {
+					values[x] = Double.parseDouble(returnedResult[1][x]);
+				}
+				Sandbox.createMultiLineChart("Stock Performance", "Date", "Price", values, returnedResult[0], returnedResult[2], false);
+			}
+		});
+	}
+}
+
+
+
+
+
+
