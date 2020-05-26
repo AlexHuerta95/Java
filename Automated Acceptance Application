@@ -1,0 +1,86 @@
+import java.util.Scanner;
+
+public class CollegeAdmissions {
+
+	public static void main(String[] args) {
+		
+		
+		Scanner keyboard = new Scanner(System.in);
+		
+		System.out.print("What is your name? ");
+		String studentname = keyboard.nextLine();
+		
+		System.out.print("What was your Critical Reading SAT score? ");
+		int criticalreading = keyboard.nextInt();
+		
+		System.out.print("What was your Mathematics SAT score? ");
+		int mathematics = keyboard.nextInt();
+		
+		System.out.print("What was your Writing SAT score? ");
+		int writing = keyboard.nextInt();
+		
+		System.out.print("What is your class standing? ");
+		double classStanding = keyboard.nextInt();
+		
+		System.out.print("What was your class size? ");
+		double classSize = keyboard.nextInt();
+		
+		String appstatus = "Waitlisted";
+		int satAvg = ((criticalreading + mathematics + writing)/3);
+		double classPercentile = (classStanding/classSize);
+		
+		if (((criticalreading > 800) || (mathematics > 800) || (writing > 800)) || ((criticalreading < 200) || (mathematics < 200) || (writing < 200)))
+		{
+			appstatus = "Rejected";
+			System.out.print(studentname + ", the exam score(s) you reported are impossible, your application has been ");
+		}
+
+		else
+		{	
+			if ((criticalreading == 800) || (mathematics == 800) || (writing == 800))
+			{
+				appstatus = "Accepted";
+				System.out.print(studentname + ", because of your perfect SAT score(s) your application has been ");
+			}
+			
+			else
+			{
+				if ((criticalreading < 300) || (mathematics < 300) || (writing < 300))
+				{
+					appstatus = "Rejected";
+					System.out.print(studentname + ", because your SAT score(s) are less than 300 your application has been ");
+				}	
+				
+				else
+				{
+					if ((satAvg > 650) && (classPercentile <= 0.25))
+					{
+						appstatus = "Accepted";
+						System.out.print(studentname + ", since your average SAT score is above 650 and you graduated in the top quarter of your class your application has been ");
+						
+					}
+					
+					else
+					{
+						if ((((criticalreading < 400) && (mathematics < 400)) || ((mathematics < 400) && (writing < 400)) || ((criticalreading < 400) && (writing < 400))) || (classPercentile >= 0.75))
+						{
+							appstatus = "Rejected";
+							System.out.print(studentname + ", either two of your SAT scores were below 400 or you graduated in the bottom quarter of your class, your application has been ");
+						}
+						
+						else
+						{
+							appstatus = "Waitlisted";
+							System.out.print(studentname + ", after reviewing your application we found you did not meet any requirements for being Rejected nor Accepted, so your application has been ");
+						}
+					}
+				}
+			}
+		}
+				
+		System.out.print(appstatus + ".");
+
+	}
+
+}
+
