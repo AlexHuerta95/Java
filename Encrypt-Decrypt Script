@@ -1,0 +1,103 @@
+import java.util.Scanner;
+
+public class MessageHiding {
+
+	public static void main(String[] args) {
+		
+		Scanner keyboard = new Scanner(System.in);
+		String coderType = ""; 
+		int encryptionKey;
+		String encoderMssg;
+		int curPos;
+		String enCrypt = "";
+		
+		do
+		{
+			System.out.print("Are you an Encoder or Decoder: ");
+			 coderType = keyboard.nextLine();
+		}while (!(coderType.equalsIgnoreCase("Decoder") || coderType.equalsIgnoreCase("Encoder")));
+		
+		do
+		{
+			System.out.print("Please provide the encrypition key (whole number value): ");
+			//encryptionKey = keyboard.nextInt();
+			encryptionKey = Integer.parseInt(keyboard.nextLine());
+		}while ((encryptionKey < 10 || encryptionKey > 200) && (encryptionKey > -10 || encryptionKey < -200));
+
+		
+		if (coderType.equalsIgnoreCase("Encoder"))
+		{
+			System.out.print("Enter message to be encoded: ");
+			encoderMssg = keyboard.nextLine();
+			
+			for(curPos = 0; curPos < encoderMssg.length(); curPos++)
+			{
+				char currentLetter = encoderMssg.charAt(curPos);
+				int currentValue = (int) currentLetter;
+				//int newValue = (currentValue - encryptionKey);
+				int newValue = currentValue;
+				for(int x = 1; x <= encryptionKey; x++)
+				{
+					if (encryptionKey < 0)
+					{
+						newValue = newValue + 1;
+					
+					if (newValue > 126)
+						newValue = 32;
+					}
+					
+					else
+						if (encryptionKey > 0)
+						{
+							newValue = newValue -1;
+							if (newValue < 32)
+								newValue = 126;
+						}
+				}
+				char newLetter = (char) newValue;
+				enCrypt = enCrypt + newLetter;
+			}
+			System.out.print(enCrypt);	
+		}
+
+		else
+			if (coderType.equalsIgnoreCase("Decoder"))
+			{
+				System.out.print("Enter message to be decoded: ");
+				encoderMssg = keyboard.nextLine();
+				
+				for(curPos = 0; curPos < encoderMssg.length(); curPos++)
+				{
+					char currentLetter = encoderMssg.charAt(curPos);
+					int currentValue = (int) currentLetter;
+					int newValue = currentValue;
+					//int newValue = (currentValue + encryptionKey);
+					for(int x = 1; x <= encryptionKey; x++)
+					{
+						if (encryptionKey > 0)
+						{
+							newValue = newValue + 1;
+						
+						if (newValue > 126)
+							newValue = 32;
+						}
+						
+						else
+							if (encryptionKey < 0)
+							{
+								newValue = newValue -1;
+								if (newValue < 32)
+									newValue = 126;
+							}
+					}
+					char newLetter = (char) newValue;
+					enCrypt = enCrypt + newLetter;
+				}
+				System.out.print(enCrypt);
+			}
+		
+
+	}
+	
+}
+
