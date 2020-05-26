@@ -1,0 +1,135 @@
+package GroupProject;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+
+
+
+
+import com.github.axet.wget.WGet;
+
+public class StockDB {
+
+//declare the strings for the URLs and file locations for all methods to use	
+public static String dblocation="C:\\DB Browser for SQLite\\Test.db";
+public static String AppleURL= "https://markets.financialcontent.com/stocks/quote/historical?Symbol=537%3A908440";
+public static String GoogleURL="https://markets.financialcontent.com/stocks/quote/historical?Symbol=537%3A29798540";
+public static String AmazonURL="https://markets.financialcontent.com/stocks/quote/historical?Symbol=537%3A645156";
+public static String IntelURL="https://markets.financialcontent.com/stocks/quote/historical?Symbol=537%3A941595";
+public static String MicrosoftURL="https://markets.financialcontent.com/stocks/quote/historical?Symbol=537%3A951692";
+public static String AppleFile="C:\\WGet Files\\Apple.txt";
+public static String GoogleFile="C:\\WGet Files\\Google.txt";
+public static String AmazonFile="C:\\WGet Files\\Amazon.txt";
+public static String IntelFile="C:\\WGet Files\\Intel.txt";
+public static String MicrosoftFile="C:\\WGet Files\\Miscrosoft.txt";
+public static String Apple ="AAPL";
+public static String Google ="GOOGL";
+public static String Amazon ="AMZN";
+public static String Intel = "INTC";
+public static String Microsoft = "MSFT";
+
+
+	public static void main(String[] args) throws MalformedURLException, ParseException {
+
+		
+		//grabs info from the web, saves into String, translates into SQLite
+		collectStockData(Apple, AppleURL, AppleFile);
+		collectStockData(Google, GoogleURL, GoogleFile);
+		collectStockData(Amazon, AmazonURL, AmazonFile);
+		collectStockData(Intel, IntelURL, IntelFile);
+		collectStockData(Microsoft, MicrosoftURL, MicrosoftFile);	
+	}
+
+
+	public static void collectStockData(String Stock, String StockURL, String StockFile) throws MalformedURLException, ParseException {
+		//grab the code of the given url and save it as a textfile to a local file
+		//will need to either adjust the file directory or send it with the folders attached
+		Sandbox.download_URL(StockURL, StockFile);
+		
+		//regex search commands saved as Strings to use later 
+		String regexDate = "<td class=\"first\">(.*?)<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*,\\d*,\\d*<\\/td>";
+		String regexOpen = "<td class=\"first\">.*?<\\/td>\\s*<td>(\\d*.\\d*)<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*,\\d*,\\d*<\\/td>";
+		String regexClose = "<td class=\"first\">.*?<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>(\\d*.\\d*)<\\/td>\\s*<td>\\d*,\\d*,\\d*<\\/td>";
+		String regexVolume = "<td class=\"first\">.*?<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>\\d*.\\d*<\\/td>\\s*<td>(\\d*,\\d*,\\d*)<\\/td>";
+		String regexChange="\\d.\\d*\\d*\\((.*?)\\)<\\/td>";
+		
+		//regex method to collect data and save into arrays
+		String file = Sandbox.read_file_into_string(StockFile);
+		String[] StockDates = Sandbox.easy_regex(regexDate, file, true);
+		String[] StockOpens = Sandbox.easy_regex(regexOpen, file, true);
+		String[] StockCloses = Sandbox.easy_regex(regexClose, file, true);
+		String[] StockVolumes = Sandbox.easy_regex(regexVolume, file, true);
+		String[] StockChanges = Sandbox.easy_regex(regexChange, file, true);
+		
+		//change the string of the date as set by the website into the correct format for SQLite
+		for (int i=0; i<StockDates.length; i++) {
+			String storedDate = StockDates[i];
+			String year = storedDate.substring(storedDate.length()-4);
+			int firstSpace = storedDate.indexOf(' ');
+			int endOfDay=storedDate.indexOf(",");
+			String day = storedDate.substring(firstSpace+1, endOfDay);
+			String month = storedDate.substring(0,firstSpace);
+
+			
+			//switch used to convert month label into numerical terms so that it can be in SQLite format
+				switch(month) {
+				case "Jan": month = "01";
+				break;
+				case "Feb" : month = "02";
+				break;
+				case "Mar": month = "03";
+				break;
+				case "Apr": month = "04";
+				break;
+				case "May": month = "05";
+				break;
+				case "Jun": month = "06";
+				break;
+				case "Jul": month = "07";
+				break;
+				case "Aug": month = "08";
+				break;
+				case "Sept": month = "09";
+				break;
+				case "Oct": month = "10";
+				break;
+				case "Nov": month = "11";
+				break;
+				case "Dec": month = "12";
+				break;
+				}
+			//turn dates into integers
+				//see if we can translate it into unix numbers instead of string dates
+				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+				Date date = format.parse(year + "-" + month + "-" + day);
+				long timestamp = (long)date.getTime()/1000;
+				System.out.println("timestamp in unix: "+timestamp);
+				
+			//insert value from arrays into the database
+			//Insert into stocks (ticker, date, open, close, volume) values ('AAPL','June 18, 2009',119,220.19,119000000)
+				String sql="insert into stocks (stock, date, open, close, volume, changes) values ('" +
+				Stock + "'," +
+				timestamp+"," +
+				StockOpens[i] + "," +
+				StockCloses[i] + "," +
+				StockVolumes[i].replace(",","") + ","+
+				"'"+StockChanges[i]+"'"+")";
+				Sandbox.easy_sqlite_modify("jdbc:sqlite:" + dblocation, sql);
+		
+		}	
+	} 
+}
+	
+
+
+
+
